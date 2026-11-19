@@ -1,22 +1,13 @@
-# Split-LLM
-
-**Enabling Distributed Cooperative Full-Size LLM Inference With Tensor Parallelism Across Heterogeneous Edge Devices**
+# E3AI-HDE
 
 [核心思想](#核心思想) · [系统流程](#系统流程) · [项目结构](#项目结构) · [快速开始](#快速开始) · [通信协议](#通信协议) · [代码详解](#代码详解) · [实验数据](#实验数据) · [注意事项](#注意事项)
-
-> 本仓库是论文 **"Enabling Distributed Cooperative Full-Size LLM Inference With Tensor Parallelism Across Heterogeneous Edge Devices"**（IEEE Transactions on Computers, Vol. 75, No. 12, Dec. 2026）的研究原型代码。它把 LLaMA 等全尺寸 LLM 的注意力头和 MLP 中间维度切分到多台异构边缘设备（NVIDIA Jetson）上，通过中心交换机做 All-Reduce，实现协同推理；同时包含分区算法的数值模拟、真实设备的 socket 推理脚本，以及通信延迟的测量数据。
-
-![图 1：系统总览——聚合器、异构边缘设备与模型分块](docs/figures/fig1-system-overview.png)
-
-*图 1：系统总览。聚合器负责 Token Embedding、LM Head 和 All-Reduce 同步；每台设备只保存并计算自己那份 Self-Attention / MLP 分片。（截取自论文 Fig. 1）*
-
-> README 中的插图均截取自论文（矢量图按 900 dpi 渲染；图 4 的现场照片是论文内嵌位图，约 320 dpi）。如果之后拿到作者提供的高清原图，尤其是图 4 的实验环境照片，直接覆盖 `docs/figures/` 下的同名文件即可，无需修改 README。
 
 ---
 
 ## 摘要
 
-大模型推理正在从云端走向边缘，但单台边缘设备的算力与显存都不足以承载全尺寸 LLM。本工作利用**张量并行（Tensor Parallelism）**，把每个 Transformer Block 拆成两部分并分配到多台异构设备：
+
+本工作利用**张量并行（Tensor Parallelism）**，把每个 Transformer Block 拆成两部分并分配到多台异构设备：
 
 - **Self-Attention**：按注意力头（head）切分，设备 $i$ 负责 $x_i$ 比例的头；
 - **MLP / FFN**：按中间层维度切分，设备 $i$ 负责 $y_i$ 比例的中间维度。
@@ -32,6 +23,10 @@
 - 基于 socket 的分布式推理客户端（`modify_model_socket*.py`）；
 - TCP/UDP 聚合服务器（`serverdick.py`、`test_server.py`、`udp_server*.py`、`tcp_udp_server.py`）；
 - 真实设备上测得的同步耗时数据（`npy/*.npy`）。
+
+![图 1：系统总览——聚合器、异构边缘设备与模型分块](docs/figures/fig1-system-overview.png)
+
+*图 1：系统总览。聚合器负责 Token Embedding、LM Head 和 All-Reduce 同步；每台设备只保存并计算自己那份 Self-Attention / MLP 分片。*
 
 ---
 
