@@ -6,7 +6,6 @@
 
 ## 摘要
 
-
 本工作利用**张量并行（Tensor Parallelism）**，把每个 Transformer Block 拆成两部分并分配到多台异构设备：
 
 - **Self-Attention**：按注意力头（head）切分，设备 $i$ 负责 $x_i$ 比例的头；
@@ -49,11 +48,11 @@
 
 ![图 2：Self-Attention 按头切分](docs/figures/fig2-attention-partition.png)
 
-*图 2：每台设备分到不同数量的注意力头，本地完成 QKV、缩放点积注意力和 $W_O$，再对 $Z_i$ 做 All-Reduce；$W^Q/W^K/W^V$ 按输出维度切分，$B$（即 $W_O$）按输入维度切分。（截取自论文 Fig. 2）*
+*图 2：每台设备分到不同数量的注意力头，本地完成 QKV、缩放点积注意力和 $W_O$，再对 $Z_i$ 做 All-Reduce；$W^Q/W^K/W^V$ 按输出维度切分，$B$（即 $W_O$）按输入维度切分。*
 
 ![图 3：MLP 按中间维度切分](docs/figures/fig3-mlp-partition.png)
 
-*图 3：每台设备分到不同数量的 MLP 列/行，本地完成 $W_1/W_3$、激活和 $W_2$，再对 $X_i'$ 做 All-Reduce；权重矩阵 $A$、$B$ 分别按列/行切分。（截取自论文 Fig. 3）*
+*图 3：每台设备分到不同数量的 MLP 列/行，本地完成 $W_1/W_3$、激活和 $W_2$，再对 $X_i'$ 做 All-Reduce；权重矩阵 $A$、$B$ 分别按列/行切分。*
 
 ### 2. 关键符号
 
@@ -388,7 +387,7 @@ avg: 0.58
 
 ![图 4：真实实验环境——Jetson 设备与 TP-Link 交换机](docs/figures/fig4-testbed.jpg)
 
-*图 4：真实实验环境。7 台 NVIDIA Jetson（2×AGX Orin 64GB、2×AGX Orin 32GB、1×Orin NX 16GB、2×Orin Nano 8GB）通过 TP-Link TL-SE5420 交换机互联，其中一台 Orin Nano 担任聚合器。（截取自论文 Fig. 4）*
+*图 4：真实实验环境。7 台 NVIDIA Jetson（2×AGX Orin 64GB、2×AGX Orin 32GB、1×Orin NX 16GB、2×Orin Nano 8GB）通过 TP-Link TL-SE5420 交换机互联，其中一台 Orin Nano 担任聚合器。*
 
 #### 步骤 1：准备每台设备的权重分片
 
@@ -712,21 +711,21 @@ for j in range(len(datagemma[0])):
 
 ![图 5：真实设备上单个 Transformer Block 的时延分解](docs/figures/fig5-real-latency.png)
 
-*图 5：真实设备上单个 Transformer Block 的时延分解（Transmission / Computing / Total），(a) 1 Gbps 与 (b) 2.5 Gbps 带宽。随着模型增大，传输时间占比上升；提高带宽主要缩短大模型的传输时间。（截取自论文 Fig. 5）*
+*图 5：真实设备上单个 Transformer Block 的时延分解（Transmission / Computing / Total），(a) 1 Gbps 与 (b) 2.5 Gbps 带宽。随着模型增大，传输时间占比上升；提高带宽主要缩短大模型的传输时间。*
 
 ![图 6：与流水线并行、张量并行的每 token 时延对比](docs/figures/fig6-parallel-comparison.png)
 
-*图 6：LLaMA-7B/13B/34B/70B 上每 token 生成时延的对比。Ours 在四种规模下均低于 Pipeline Parallelism 和 Megatron-edge 式张量并行，论文报告的时延约为 0.65/0.36/0.85/1.61 秒/token。（截取自论文 Fig. 6）*
+*图 6：LLaMA-7B/13B/34B/70B 上每 token 生成时延的对比。Ours 在四种规模下均低于 Pipeline Parallelism 和 Megatron-edge 式张量并行，论文报告的时延约为 0.65/0.36/0.85/1.61 秒/token。*
 
 ### 数值模拟结果
 
 ![图 8：模拟中 prefill / decode 阶段的 Block 时延](docs/figures/fig8-simulation-block.png)
 
-*图 8：数值模拟中单个 Block 的平均时延分解：(a) prefill 阶段，(b) decode 阶段。A/F 分别表示 Attention/MLP，cp/co 分别表示计算/通信；decode 阶段通信占比明显更高。（截取自论文 Fig. 8）*
+*图 8：数值模拟中单个 Block 的平均时延分解：(a) prefill 阶段，(b) decode 阶段。A/F 分别表示 Attention/MLP，cp/co 分别表示计算/通信；decode 阶段通信占比明显更高。*
 
 ![图 10：不同设备数量下的每 token 时延](docs/figures/fig10-device-scaling.png)
 
-*图 10：每 token 生成时延随设备数（3→24）的变化。设备数增加会带来更多同步开销，但 70B 模型仍可在 24 台异构设备上完成部署。（截取自论文 Fig. 10）*
+*图 10：每 token 生成时延随设备数（3→24）的变化。设备数增加会带来更多同步开销，但 70B 模型仍可在 24 台异构设备上完成部署。*
 
 ### `npy/*.npy`
 
